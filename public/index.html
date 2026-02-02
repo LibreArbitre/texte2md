@@ -1,43 +1,129 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>texte2md - Rich Text to Markdown</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <style>
-        body { padding: 2rem; max-width: 900px; margin: 0 auto; }
-        #editor { min-height: 200px; border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem; border-radius: 4px; }
-        #output { background: #f4f4f4; padding: 1rem; border-radius: 4px; white-space: pre-wrap; display: none; }
-        .controls { display: flex; gap: 1rem; margin-bottom: 1rem; }
+        :root {
+            --spacing-base: 1rem;
+        }
+        body { 
+            padding: 1rem; 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            transition: background-color 0.3s ease;
+        }
+        header { 
+            text-align: center; 
+            margin-bottom: 1rem; 
+            position: relative;
+        }
+        .logo {
+            max-width: 300px;
+            height: auto;
+            margin-bottom: 0.5rem;
+        }
+        .tagline {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 0;
+        }
+        #editor { 
+            min-height: 250px; 
+            border: 2px solid var(--primary); 
+            padding: 1rem; 
+            margin-bottom: 1rem; 
+            border-radius: 8px; 
+            background: var(--card-background-color);
+        }
+        #editor:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--primary-focus);
+        }
+        #editor[placeholder]:empty:before {
+            content: attr(placeholder);
+            color: var(--muted-color);
+            cursor: text;
+        }
+        #output-container {
+            margin-top: 1rem;
+            display: none;
+        }
+        #output { 
+            background: var(--code-background-color); 
+            padding: 1rem; 
+            border-radius: 8px; 
+            white-space: pre-wrap; 
+            font-family: 'Courier New', Courier, monospace;
+            border: 1px dashed var(--muted-color);
+        }
+        .controls { 
+            display: flex; 
+            gap: 1rem; 
+            margin-bottom: 1rem; 
+            justify-content: center;
+        }
+        .theme-toggle {
+            position: absolute;
+            top: 0;
+            right: 0;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            background: var(--card-background-color);
+            border: 1px solid var(--muted-color);
+            line-height: 1;
+        }
         .hidden { display: none; }
-        header { text-align: center; margin-bottom: 2rem; }
+        
+        main {
+            margin-top: 0;
+        }
     </style>
 </head>
 <body>
     <header>
-        <h1>texte2md</h1>
-        <p>Simple, secure Rich Text to Markdown conversion.</p>
+        <div class="theme-toggle" id="themeToggle" title="Toggle Theme">🌓</div>
+        <img src="logo.png" alt="texte2md" class="logo">
+        <p class="tagline">Simple, secure Rich Text to Markdown conversion.</p>
     </header>
 
     <main>
-        <div id="editor" contenteditable="true" placeholder="Paste your rich text here..."></div>
+        <div id="editor" contenteditable="true" placeholder="Paste your rich text here (from Word, Web, etc.)..."></div>
         
         <div class="controls">
-            <button id="convertBtn">Convert to Markdown</button>
+            <button id="convertBtn" class="contrast">Convert to Markdown</button>
             <button id="copyBtn" class="secondary hidden">Copy Markdown</button>
-            <button id="clearBtn" class="outline secondary">Clear</button>
+            <button id="clearBtn" class="outline secondary">Clear All</button>
         </div>
 
-        <pre id="output"></pre>
+        <div id="output-container">
+            <pre id="output"></pre>
+        </div>
     </main>
 
     <script>
         const editor = document.getElementById('editor');
         const output = document.getElementById('output');
+        const outputContainer = document.getElementById('output-container');
         const convertBtn = document.getElementById('convertBtn');
         const copyBtn = document.getElementById('copyBtn');
         const clearBtn = document.getElementById('clearBtn');
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlRoot = document.documentElement;
+
+        // Theme Logic
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        htmlRoot.setAttribute('data-theme', savedTheme);
+
+        themeToggle.onclick = () => {
+            const currentTheme = htmlRoot.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlRoot.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        };
 
         convertBtn.onclick = async () => {
             const html = editor.innerHTML;
@@ -55,8 +141,9 @@
                 const data = await response.json();
                 if (data.markdown) {
                     output.textContent = data.markdown;
-                    output.style.display = 'block';
+                    outputContainer.style.display = 'block';
                     copyBtn.classList.remove('hidden');
+                    outputContainer.scrollIntoView({ behavior: 'smooth' });
                 }
             } catch (err) {
                 alert('Conversion failed.');
@@ -75,7 +162,7 @@
         clearBtn.onclick = () => {
             editor.innerHTML = '';
             output.textContent = '';
-            output.style.display = 'none';
+            outputContainer.style.display = 'none';
             copyBtn.classList.add('hidden');
         };
     </script>
