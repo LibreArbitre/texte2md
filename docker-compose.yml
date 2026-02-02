@@ -1,0 +1,9 @@
+services:
+  texte2md:
+    build: .
+    container_name: texte2md
+    ports:
+      - "3000:3000"
+    restart: always
+    environment:
+      - NODE_ENV=production
