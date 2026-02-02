@@ -7,29 +7,98 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <style>
         :root {
-            --spacing-base: 1rem;
+            --spacing-header: 0.5rem;
         }
         body { 
             padding: 1rem; 
-            max-width: 1000px; 
+            max-width: 900px; 
             margin: 0 auto; 
             transition: background-color 0.3s ease;
         }
         header { 
             text-align: center; 
-            margin-bottom: 1rem; 
+            margin-bottom: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .logo-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             position: relative;
+            margin-bottom: 0.25rem;
         }
         .logo {
-            max-width: 300px;
+            max-width: 400px;
+            width: 100%;
             height: auto;
-            margin-bottom: 0.5rem;
         }
         .tagline {
             font-size: 0.9rem;
             opacity: 0.8;
-            margin-bottom: 0;
+            margin-bottom: 0.5rem;
         }
+
+        /* Modern Toggle Switch */
+        .theme-switch-wrapper {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+        }
+        .theme-switch {
+            display: inline-block;
+            height: 24px;
+            position: relative;
+            width: 50px;
+        }
+        .theme-switch input {
+            display:none;
+        }
+        .slider {
+            background-color: #ccc;
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            background-color: #fff;
+            bottom: 3px;
+            content: "";
+            height: 18px;
+            left: 4px;
+            position: absolute;
+            transition: .4s;
+            width: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+        input:checked + .slider:before {
+            transform: translateX(24px);
+            content: "🌙";
+            background-color: #1a1a1a;
+        }
+        .slider:before {
+            content: "☀️";
+            line-height: 18px;
+            text-align: center;
+        }
+
         #editor { 
             min-height: 250px; 
             border: 2px solid var(--primary); 
@@ -65,28 +134,25 @@
             margin-bottom: 1rem; 
             justify-content: center;
         }
-        .theme-toggle {
-            position: absolute;
-            top: 0;
-            right: 0;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 50%;
-            background: var(--card-background-color);
-            border: 1px solid var(--muted-color);
-            line-height: 1;
-        }
         .hidden { display: none; }
         
         main {
             margin-top: 0;
+            padding-top: 0;
         }
     </style>
 </head>
 <body>
     <header>
-        <div class="theme-toggle" id="themeToggle" title="Toggle Theme">🌓</div>
-        <img src="logo.png" alt="texte2md" class="logo">
+        <div class="logo-container">
+            <img src="logo.png" alt="texte2md" class="logo">
+            <div class="theme-switch-wrapper">
+                <label class="theme-switch" for="checkbox">
+                    <input type="checkbox" id="checkbox" />
+                    <div class="slider round"></div>
+                </label>
+            </div>
+        </div>
         <p class="tagline">Simple, secure Rich Text to Markdown conversion.</p>
     </header>
 
@@ -111,19 +177,19 @@
         const convertBtn = document.getElementById('convertBtn');
         const copyBtn = document.getElementById('copyBtn');
         const clearBtn = document.getElementById('clearBtn');
-        const themeToggle = document.getElementById('themeToggle');
+        const themeCheckbox = document.getElementById('checkbox');
         const htmlRoot = document.documentElement;
 
         // Theme Logic
         const savedTheme = localStorage.getItem('theme') || 'dark';
         htmlRoot.setAttribute('data-theme', savedTheme);
+        themeCheckbox.checked = savedTheme === 'dark';
 
-        themeToggle.onclick = () => {
-            const currentTheme = htmlRoot.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        themeCheckbox.addEventListener('change', (e) => {
+            const newTheme = e.target.checked ? 'dark' : 'light';
             htmlRoot.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
-        };
+        });
 
         convertBtn.onclick = async () => {
             const html = editor.innerHTML;
