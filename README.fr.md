@@ -12,17 +12,19 @@ Un service web simple et sécurisé pour convertir du texte enrichi (HTML) en Ma
 - [Turndown](https://github.com/mixmark-io/turndown) - Convertisseur HTML vers Markdown
 - [DOMPurify](https://github.com/cure53/dompurify) - Nettoyage HTML
 - [Pico.css](https://picocss.com/) - Framework CSS minimaliste
+- [Docker](https://www.docker.com/) - Conteneurisation
 
 ## Installation
 
+### Local (Node.js)
 ```bash
 npm install
+npm start
 ```
 
-## Lancement
-
+### Docker
 ```bash
-npm start
+docker-compose up -d
 ```
 
 ## Licence

@@ -12,17 +12,19 @@ A simple and secure web service to convert Rich Text (HTML) to Markdown.
 - [Turndown](https://github.com/mixmark-io/turndown) - HTML to Markdown converter
 - [DOMPurify](https://github.com/cure53/dompurify) - HTML sanitizer
 - [Pico.css](https://picocss.com/) - Minimal CSS framework
+- [Docker](https://www.docker.com/) - Containerization
 
 ## Installation
 
+### Local (Node.js)
 ```bash
 npm install
+npm start
 ```
 
-## Running
-
+### Docker
 ```bash
-npm start
+docker-compose up -d
 ```
 
 ## License
