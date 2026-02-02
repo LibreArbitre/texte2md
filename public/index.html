@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>texte2md - Rich Text to Markdown</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <style>
+        body { padding: 2rem; max-width: 900px; margin: 0 auto; }
+        #editor { min-height: 200px; border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem; border-radius: 4px; }
+        #output { background: #f4f4f4; padding: 1rem; border-radius: 4px; white-space: pre-wrap; display: none; }
+        .controls { display: flex; gap: 1rem; margin-bottom: 1rem; }
+        .hidden { display: none; }
+        header { text-align: center; margin-bottom: 2rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>texte2md</h1>
+        <p>Simple, secure Rich Text to Markdown conversion.</p>
+    </header>
+
+    <main>
+        <div id="editor" contenteditable="true" placeholder="Paste your rich text here..."></div>
+        
+        <div class="controls">
+            <button id="convertBtn">Convert to Markdown</button>
+            <button id="copyBtn" class="secondary hidden">Copy Markdown</button>
+            <button id="clearBtn" class="outline secondary">Clear</button>
+        </div>
+
+        <pre id="output"></pre>
+    </main>
+
+    <script>
+        const editor = document.getElementById('editor');
+        const output = document.getElementById('output');
+        const convertBtn = document.getElementById('convertBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const clearBtn = document.getElementById('clearBtn');
+
+        convertBtn.onclick = async () => {
+            const html = editor.innerHTML;
+            if (!html || html === '<br>') return;
+
+            convertBtn.setAttribute('aria-busy', 'true');
+            
+            try {
+                const response = await fetch('/api/convert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ html })
+                });
+                
+                const data = await response.json();
+                if (data.markdown) {
+                    output.textContent = data.markdown;
+                    output.style.display = 'block';
+                    copyBtn.classList.remove('hidden');
+                }
+            } catch (err) {
+                alert('Conversion failed.');
+            } finally {
+                convertBtn.setAttribute('aria-busy', 'false');
+            }
+        };
+
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(output.textContent);
+            const originalText = copyBtn.innerText;
+            copyBtn.innerText = 'Copied!';
+            setTimeout(() => copyBtn.innerText = originalText, 2000);
+        };
+
+        clearBtn.onclick = () => {
+            editor.innerHTML = '';
+            output.textContent = '';
+            output.style.display = 'none';
+            copyBtn.classList.add('hidden');
+        };
+    </script>
+</body>
+</html>
