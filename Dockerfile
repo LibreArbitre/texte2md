@@ -1,20 +1,18 @@
-# Use Node.js LTS
 FROM node:22-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
+RUN npm ci --omit=dev
 
-# Install dependencies
-RUN npm install --production
+COPY --chown=node:node public ./public
+COPY --chown=node:node src ./src
 
-# Copy source code
-COPY . .
+ENV NODE_ENV=production
+USER node
 
-# Expose the application port
 EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD wget -qO- http://127.0.0.1:3000/health >/dev/null || exit 1
 
-# Start the application
 CMD ["npm", "start"]
