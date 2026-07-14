@@ -1,10 +1,13 @@
 # texte2md
 
-Un service web simple et sécurisé pour convertir du texte enrichi (HTML) en Markdown.
+Un service web simple et sécurisé pour convertir du texte enrichi (HTML) en Markdown, et inversement.
 
 ## Fonctionnalités
 - **Rapide :** Implémentation légère sous Node.js.
-- **Sécurisé :** Utilise `DOMPurify` pour la désinfection et `Helmet` pour les en-têtes HTTP.
+- **Bidirectionnel :** Texte enrichi vers Markdown et Markdown vers texte enrichi assaini.
+- **Compatible GFM :** Conserve les tableaux, listes de tâches et autres structures GitHub Flavored Markdown.
+- **Sécurisé :** Utilise `DOMPurify`, une politique CSP stricte et une limitation du débit de l'API.
+- **Respectueux des données :** La conversion est réalisée par le service local, sans envoi vers une API tierce.
 - **Facile à utiliser :** Interface web épurée pour une conversion instantanée.
 
 ## Stack Technique
@@ -19,13 +22,16 @@ Un service web simple et sécurisé pour convertir du texte enrichi (HTML) en Ma
 ### Local (Node.js)
 ```bash
 npm install
+npm test
 npm start
 ```
 
 ### Docker
 ```bash
-docker-compose up -d
+docker compose up -d --build
 ```
+
+Le conteneur s'exécute avec un utilisateur non privilégié et expose `/health` pour les contrôles d'état.
 
 ## Licence
 MIT

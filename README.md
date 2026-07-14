@@ -1,10 +1,13 @@
 # texte2md
 
-A simple and secure web service to convert Rich Text (HTML) to Markdown.
+A simple and secure web service to convert Rich Text (HTML) to Markdown and back.
 
 ## Features
 - **Fast:** Lightweight Node.js implementation.
-- **Secure:** Uses `DOMPurify` for sanitization and `Helmet` for HTTP headers.
+- **Bidirectional:** Rich Text to Markdown and Markdown to sanitized Rich Text.
+- **GFM support:** Preserves tables, task lists and other GitHub Flavored Markdown structures.
+- **Secure:** Uses `DOMPurify`, a strict Content Security Policy and API rate limiting.
+- **Private by design:** Conversion is performed by the local service; no content is sent to a third-party API.
 - **Easy to use:** Clean web interface for instant conversion.
 
 ## Tech Stack
@@ -19,13 +22,16 @@ A simple and secure web service to convert Rich Text (HTML) to Markdown.
 ### Local (Node.js)
 ```bash
 npm install
+npm test
 npm start
 ```
 
 ### Docker
 ```bash
-docker-compose up -d
+docker compose up -d --build
 ```
+
+The container runs as a non-root user and exposes `/health` for health checks.
 
 ## License
 MIT
