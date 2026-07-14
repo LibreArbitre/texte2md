@@ -4,33 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>texte2md - Conversion Tool</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-    <style>
-        body { padding: 1rem; max-width: 1000px; margin: 0 auto; transition: background-color 0.3s ease; display: flex; flex-direction: column; min-height: 100vh; }
-        header { text-align: center; margin-bottom: 0.5rem; display: flex; flex-direction: column; align-items: center; }
-        .logo-container { width: 100%; display: flex; justify-content: center; align-items: center; position: relative; margin-bottom: 0.25rem; }
-        .logo { max-width: 400px; width: 100%; height: auto; }
-        .tagline { font-size: 0.9rem; opacity: 0.8; margin-bottom: 0.5rem; }
-        .theme-switch-wrapper { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: flex; align-items: center; }
-        .theme-switch { display: inline-block; height: 24px; position: relative; width: 50px; }
-        .theme-switch input { display:none; }
-        .slider { background-color: #ccc; bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; border-radius: 34px; }
-        .slider:before { background-color: #fff; bottom: 3px; content: "☀️"; height: 18px; left: 4px; position: absolute; transition: .4s; width: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 18px; text-align: center; }
-        input:checked + .slider { background-color: var(--primary); }
-        input:checked + .slider:before { transform: translateX(24px); content: "🌙"; background-color: #1a1a1a; }
-        .mode-selector { margin-bottom: 1rem; display: flex; justify-content: center; gap: 2rem; }
-        .mode-selector label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
-        #input-area { min-height: 250px; max-height: 500px; overflow-y: auto; border: 2px solid var(--primary); padding: 1rem; margin-bottom: 1rem; border-radius: 8px; background: var(--card-background-color); }
-        #input-area:focus { outline: none; box-shadow: 0 0 0 2px var(--primary-focus); }
-        #input-area[placeholder]:empty:before { content: attr(placeholder); color: var(--muted-color); cursor: text; }
-        #output-container { margin-top: 1rem; display: none; margin-bottom: 2rem; }
-        #output { background: var(--code-background-color); padding: 1rem; border-radius: 8px; white-space: pre-wrap; font-family: 'Courier New', Courier, monospace; border: 1px dashed var(--muted-color); }
-        #output-html { border: 2px solid var(--secondary); padding: 1rem; border-radius: 8px; background: var(--card-background-color); margin-top: 0.5rem; }
-        .controls { display: flex; gap: 1rem; margin-bottom: 1rem; justify-content: center; }
-        .hidden { display: none; }
-        main { flex: 1; margin-top: 0; padding-top: 0; }
-        footer { text-align: center; padding: 2rem 0 1rem; font-size: 0.85rem; opacity: 0.7; border-top: 1px solid var(--muted-border-color); margin-top: 2rem; }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
@@ -38,8 +12,8 @@
             <img src="logo.png" alt="texte2md" class="logo">
             <div class="theme-switch-wrapper">
                 <label class="theme-switch" for="themeCheckbox">
-                    <input type="checkbox" id="themeCheckbox" />
-                    <div class="slider round"></div>
+                    <input type="checkbox" id="themeCheckbox" aria-label="Use dark theme">
+                    <span class="slider" aria-hidden="true"></span>
                 </label>
             </div>
         </div>
@@ -47,20 +21,23 @@
     </header>
 
     <main>
-        <div class="mode-selector">
+        <fieldset class="mode-selector">
+            <legend class="visually-hidden">Conversion direction</legend>
             <label><input type="radio" name="mode" value="html2md" checked> Rich Text ➔ Markdown</label>
             <label><input type="radio" name="mode" value="md2html"> Markdown ➔ Rich Text</label>
-        </div>
+        </fieldset>
 
-        <div id="input-area" contenteditable="true" placeholder="Paste your content here..."></div>
+        <div id="input-area" contenteditable="true" role="textbox" aria-label="Content to convert" aria-multiline="true" spellcheck="true" data-placeholder="Paste your content here..."></div>
         
         <div class="controls">
-            <button id="convertBtn" class="contrast">Convert Now</button>
-            <button id="copyBtn" class="secondary hidden">Copy Result</button>
-            <button id="clearBtn" class="outline secondary">Clear All</button>
+            <button id="convertBtn" type="button" class="contrast">Convert Now</button>
+            <button id="copyBtn" type="button" class="secondary hidden">Copy Result</button>
+            <button id="clearBtn" type="button" class="outline secondary">Clear All</button>
         </div>
 
-        <div id="output-container">
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+
+        <div id="output-container" hidden>
             <h5 id="output-label">Result:</h5>
             <pre id="output" class="hidden"></pre>
             <div id="output-html" class="hidden"></div>
@@ -71,106 +48,6 @@
         Made with love by Clytie &lt;3
     </footer>
 
-    <script>
-        const inputArea = document.getElementById('input-area');
-        const output = document.getElementById('output');
-        const outputHtml = document.getElementById('output-html');
-        const outputContainer = document.getElementById('output-container');
-        const convertBtn = document.getElementById('convertBtn');
-        const copyBtn = document.getElementById('copyBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const themeCheckbox = document.getElementById('themeCheckbox');
-        const modes = document.getElementsByName('mode');
-        const htmlRoot = document.documentElement;
-
-        // Theme Logic
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        htmlRoot.setAttribute('data-theme', savedTheme);
-        themeCheckbox.checked = savedTheme === 'dark';
-        themeCheckbox.addEventListener('change', (e) => {
-            const newTheme = e.target.checked ? 'dark' : 'light';
-            htmlRoot.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-        });
-
-        // Mode UI Tweak
-        modes.forEach(m => m.addEventListener('change', () => {
-            if (m.value === 'md2html') {
-                inputArea.style.whiteSpace = 'pre-wrap';
-                inputArea.style.fontFamily = 'monospace';
-            } else {
-                inputArea.style.whiteSpace = 'normal';
-                inputArea.style.fontFamily = 'inherit';
-            }
-            clearBtn.click();
-        }));
-
-        // Paste Handler to cleanup leading/trailing junk
-        inputArea.addEventListener('paste', (e) => {
-            // Optional: We could intercept and clean HTML here, 
-            // but for now let's let the user see what they paste.
-        });
-
-        convertBtn.onclick = async () => {
-            const mode = document.querySelector('input[name="mode"]:checked').value;
-            // Clean up leading/trailing breaks often added by browser/clipboard
-            let content = mode === 'html2md' ? inputArea.innerHTML : inputArea.innerText;
-            
-            if (mode === 'html2md') {
-                content = content.replace(/^(<br>|&nbsp;|\s)+/gi, '').replace(/(<br>|&nbsp;|\s)+$/gi, '');
-            }
-
-            if (!content || content === '<br>') return;
-
-            convertBtn.setAttribute('aria-busy', 'true');
-            
-            try {
-                const endpoint = mode === 'html2md' ? '/api/convert' : '/api/reverse';
-                const body = mode === 'html2md' ? { html: content } : { markdown: content };
-                
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
-                
-                const data = await response.json();
-                outputContainer.style.display = 'block';
-                copyBtn.classList.remove('hidden');
-
-                if (mode === 'html2md') {
-                    output.textContent = data.markdown;
-                    output.classList.remove('hidden');
-                    outputHtml.classList.add('hidden');
-                } else {
-                    outputHtml.innerHTML = data.html;
-                    outputHtml.classList.remove('hidden');
-                    output.classList.add('hidden');
-                }
-                outputContainer.scrollIntoView({ behavior: 'smooth' });
-            } catch (err) {
-                alert('Conversion failed.');
-            } finally {
-                convertBtn.setAttribute('aria-busy', 'false');
-            }
-        };
-
-        copyBtn.onclick = () => {
-            const mode = document.querySelector('input[name="mode"]:checked').value;
-            const textToCopy = mode === 'html2md' ? output.textContent : outputHtml.innerText;
-            navigator.clipboard.writeText(textToCopy);
-            const originalText = copyBtn.innerText;
-            copyBtn.innerText = 'Copied!';
-            setTimeout(() => copyBtn.innerText = originalText, 2000);
-        };
-
-        clearBtn.onclick = () => {
-            inputArea.innerHTML = '';
-            output.textContent = '';
-            outputHtml.innerHTML = '';
-            outputContainer.style.display = 'none';
-            copyBtn.classList.add('hidden');
-        };
-    </script>
+    <script src="app.js" defer></script>
 </body>
 </html>
